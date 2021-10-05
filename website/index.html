@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CALCULADORA SPA</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/jqueryNumeric/jquery.numeric.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
+
+</head>
+<body class="bg-info">
+
+        <!--   INSERTAR NUMEROS CLIENTE      -->
+    <div class="container my-5 text-center">
+        <h1 class="text-white font-weight-bold">CALCULADORA</h1>
+        <br><p></p>
+        <p class="text-white">Ingrese numeros enteros largos a multiplicar</p>
+
+            <input type="text" class="positive-integer rounded w-30 text-danger text-center font-weight-bold" placeholder="INGRESE NUMERO" name="num1" id="numero1" maxlength="20" required>
+
+            <h4 class="text-warning font-weight-bold">x</h4>
+
+            <input type="text" class="positive-integer rounded w-30 text-danger text-center font-weight-bold" placeholder="INGRESE NUMERO" name="num2" id="numero2" maxlength="20"  required>
+            <br><br>
+            <button class="btn btn-danger w-20" onclick="multiplicar()"><strong>CALCULAR</strong></button>
+            <p></p>
+            <input class="rounded w-30 bg-white text-danger text-center font-weight-bold" name="resultado" id="resultado" value="" disabled="disabled"><br><br><br>
+         <!--  Div Mostrar Resultado Operacion    -->
+
+         <button class="btn btn-danger w-20" onclick="leer_todo()"><strong>HISTORIAL</strong></button>&nbsp;&nbsp;<button class="btn btn-danger w-20" onclick="eliminar()"><strong>ELIMINAR</strong></button>&nbsp;<div id="del_datos"></div>
+
+
+        </div>
+
+        <!-- Centrar Tabla -->
+        <div class="row">
+        <div class="col-lg-12">
+        <div class="table-responsive">
+        <table class="table bg-white font-weight-bold text-center">
+            <thead>
+                <tr>
+                    <th class=" text-white bg-info">| PRIMER NUMERO |</th>
+                    <th class="text-warning bg-info">X</th>
+                    <th class=" text-white bg-info">| SEGUNDO NUMERO |</th>
+                    <th class=" text-white bg-warning">| RESULTADO |</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="contenido1"></td>
+                    <td class="text-danger" id="contenidox"></td>
+                    <td id="contenido2"></td>
+                    <td id="contenido3"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+    </div>
+
+
+        <script type="text/javascript">
+        /* FUNCION NUMERICA  DE FORMULARIO */
+            $(".numeric").numeric();
+            $(".integer").numeric(false, function() { alert("Integers only"); this.value = ""; this.focus(); });
+            $(".positive").numeric({ negative: false }, function() { alert("No negative values"); this.value = ""; this.focus(); });
+            $(".positive-integer").numeric({ decimal: false, negative: false }, function() { alert("Positive integers only"); this.value = ""; this.focus(); });
+            $(".decimal-2-places").numeric({ decimalPlaces: 2 });
+            $("#remove").click(
+                function(e)
+                {
+                    e.preventDefault();
+                    $(".numeric,.integer,.positive,.positive-integer,.decimal-2-places").removeNumeric();
+                }
+            );
+
+        /*  FUNCION MULTIPLICACION NUMEROS */    
+            function multiplicar(){	
+                var in_numero1 = document.getElementById("numero1").value;
+                var in_numero2 = document.getElementById("numero2").value;
+
+                $.ajax({
+
+                    type:"POST",
+                    url:"http://localhost:8000/api/multiplicar/",
+                    dataType:"json",
+                    data:JSON.stringify({
+                        numero1: `${in_numero1}`,
+                        numero2: `${in_numero2}`
+                    }),
+                    success:function(data){
+                        //setInterval(contar, 3000); 
+                        // document.f1.f1t1.value = 30
+  
+                        document.getElementById("resultado").value = data['resultado'];
+                        console.log(data);
+                        //Ingresar Datos en un Input 
+                        //document.getElementById("pepe").value ="Tutorial Javascript";
+                       /* function contar(){
+                            document.getElementById("resultado").style.display="none";
+                        } */
+                        }	
+                    });		
+                }
+
+        /* FUNCION PARA LISTAR CONTENIDO */ 
+        //var contenido = document.querySelector('#contenido')
+        var contenido1 = document.querySelector('#contenido1')
+        var contenido2 = document.querySelector('#contenido2')
+        var contenido3 = document.querySelector('#contenido3')
+        var contenidox = document.querySelector('#contenidox')
+        function leer_todo() {
+            var lista1=[];
+            var lista2=[];
+            var lista3=[];
+            var x=[];
+            fetch('http://localhost:8000/api/multiplicar/consulta/')
+            .then(data => data.json())
+            .then(data=>{
+                for(let i of data){
+                    //miArray.join("")
+                    //lista1.push(i.num1 + "  " + i.num2 + "  " +  i.resultado + "<br>")
+                    lista1.push(i.num1 + "<br>")
+                    x.push("x" + "<br>");
+                }
+                for(let i of data){
+                    //miArray.join("")
+                    lista2.push(i.num2 + "<br>")
+                }
+                for(let i of data){
+                    //miArray.join("")
+                    lista3.push(i.resultado + "<br>")
+                }
+            })
+            .then(data=>{
+                //console.log(lista)   //Quitar Comas con join("")
+                //contenido.innerHTML = `${lista.join("")}` //Quitar Comas con join("")
+                console.log(lista1, lista2, lista3);
+                contenido1.innerHTML =`${lista1.join("")}`;
+                contenidox.innerHTML =`${x.join("")}`;
+                contenido2.innerHTML =`${lista2.join("")}`;
+                contenido3.innerHTML =`${lista3.join("")}`;
+
+            })
+        }
+
+
+
+        /* FUNCION PARA ELIMINAR CONTENIDO */ 
+        //var del_datos = document.querySelector('#del_datos')
+        
+        function eliminar() {
+            fetch('http://localhost:8000/api/multiplicar/eliminar/', {
+                method: 'DELETE',
+              })
+            .then(data => data.json())
+            .then(data=>{
+                console.log(data);
+                leer_todo(); 
+                //del_datos.innerHTML = data.message;
+            });
+
+
+        }
+
+
+        </script>
+
+
+</body>
+</html>
